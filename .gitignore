@@ -1,0 +1,9 @@
+metadata_files/*
+out/*
+mvol*json
+test.xml
+.vscode/*
+*egg*
+*pyc
+*cache*
+env*
