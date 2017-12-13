@@ -30,11 +30,11 @@ if __name__ == "__main__":
             date = xml.find("date").text
             description = xml.find("description").text
             dc_id = xml.find("identifier").text
-            record = [title, date, dc_id, description]
+            record = [title, date, dc_id, description, ""]
             records.append(record)
 
     with open("./metadata_files/mvol-0007.csv", "w+", encoding="utf-8") as write_file:
         a_writer = csv.writer(write_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
-        a_writer.writerow(["Title", "Date", "Identification", "Description"])
+        a_writer.writerow(["Title", "Date", "Identification", "Description", "Note"])
         for row in records:
             a_writer.writerow(row)

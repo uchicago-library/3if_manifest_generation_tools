@@ -1,4 +1,5 @@
 from argparse import ArgumentParser
+import csv
 from os import _exit, scandir, listdir
 from os.path import exists, join
 import json
@@ -49,21 +50,19 @@ def main():
     arguments.add_argument("cho_list_data", type=str, action='store')
     parsed_args = arguments.parse_args()
     try:
-        of = 
         fields = []
         records = []
-        with open(parsed.cho_list_data, "r", encoding="utf-8") as read_file:
-            reader = csv.reader(read_file, delimiter=',', quoting='"', quotechar=csv.QUOTE_ALL)
+        with open(parsed_args.cho_list_data, "r", encoding="utf-8") as read_file:
+            reader = csv.reader(read_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
             count = 0
             for row in reader:
+                print(row[1])
                 if count > 0:
                     records.append(row)
                 else:
                     fields = row
                 count += 1
 
-        for n_item in scanned_files:
-            print(n_item)
             # identifier = n.split("mvol")[1]
             # identifier = identifier.split("\\")
             # identifier[0] = "mvol"
