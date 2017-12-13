@@ -1,20 +1,8 @@
 from argparse import ArgumentParser
 import csv
-from os import _exit, scandir, listdir
+from os import _exit, listdir
 from os.path import exists, join
-import json
 import re
-import string
-
-def _find_issues(path):
-    for a_thing in scandir(path):
-        if a_thing.is_dir():
-            matchable = re.compile(r"mvol[\\]\d{4}[\\]\d{4}[\\]\d{4}$").search(a_thing.path)
-            if matchable: 
-                yield a_thing.path
-            yield from _find_issues(a_thing.path)
-        else:
-            pass
 
 # def _build_canvas_list(pages, identifier):
 #     out = []
@@ -48,20 +36,75 @@ def _find_issues(path):
 def main():
     arguments = ArgumentParser()
     arguments.add_argument("cho_list_data", type=str, action='store')
+    arguments.add_argument("data_root", action='store', type=str, default="Z:\IIIF_Files")
     parsed_args = arguments.parse_args()
     try:
         fields = []
         records = []
+        missing_records = []
+        validity_records = []
         with open(parsed_args.cho_list_data, "r", encoding="utf-8") as read_file:
             reader = csv.reader(read_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
             count = 0
+        
             for row in reader:
-                print(row[1])
+                date_as_entered = row[1]
+                identifier = row[2]
+                title = row[0]
+                description = row[3]
+                wrong_pattern_match = re.compile("(\d{1,2})[/](\d{1,2})[/](\d{4})").match(date_as_entered)
+                range_pattern_match = re.compile("(\d{4}.*)[/](\d{4}.*)").match(date_as_entered)
+                if wrong_pattern_match:
+                    day = wrong_pattern_match.group(1).zfill(2)
+                    month = wrong_pattern_match.group(2).zfill(2)
+                    year = wrong_pattern_match.group(3)
+                    valid_date = "{}-{}-{}".format(year, month, day)
+                    date = valid_date
+                elif range_pattern_match:
+                    min_num = range_pattern_match.group(1)
+                    max_num = range_pattern_match.group(2)
+                    date1 = min_num
+                    date2 = max_num
+                    date = "{},{}".format(date1,date2)
+                else:
+                    date = date_as_entered
+                content_path = join(parsed_args.data_root, *identifier.split('-'))
                 if count > 0:
-                    records.append(row)
+                    if not exists(content_path):
+                        missing_record = [title, date, identifier, description]
+                        missing_records.append(missing_record)
+                        records.append(row)
+                    else:
+                        content_path_base_contents = listdir(content_path)
+                        valid_contents1 = ['ALTO', 'TIFF', 'JPEG', identifier+'.pdf', identifier+'.struct.txt', identifier+'.dc.xml']
+                        valid_contents2 = ['jpg', 'xml', 'tif', identifier+'.pdf', identifier+'.txt', identifier+'.dc.xml']
+                        check_option1 = set(valid_contents1) - set(content_path_base_contents)
+                        check_option2 = set(valid_contents2) - set(content_path_base_contents)
+                        if not check_option1 and check_option2:
+                            check_type = "post-limb"
+                            validity = True
+                        elif not check_option2 and check_option1:
+                            check_type = "pre-limb"
+                            validity = True
+                        else:
+                            check_type = "undeterminable"
+                            validity = False
+                        validity_record = [identifier, validity, check_type]
+                        print(validity_record)
+                        validity_records.append(validity_record)
                 else:
                     fields = row
                 count += 1
+        with open("metadata_files/missing_mvol_issues.csv", "w+", encoding="utf-8") as write_file:
+            writer = csv.writer(write_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+            writer.writerow(["Title", "Date", "Identification", "Description"])
+            for row in missing_records:
+                writer.writerow(row)
+        with open("metadata_files/mvols_validity_report.csv", "w+", encoding="utf-8") as write_file:
+            writer = csv.writer(write_file, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+            writer.writerow(["Identification", "Valid", "Valdiation Type"])
+            for row in validity_records:
+                writer.writerow(row)
 
             # identifier = n.split("mvol")[1]
             # identifier = identifier.split("\\")
