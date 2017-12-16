@@ -1,0 +1,12 @@
+{
+    "@id": "http://iiif-manifest.lib.uchicago.edu/{{ manifest_identifier }}/sequence/{{ seq_identifier }}",
+    "@type": "sc:Sequence",
+    "label": "{{ seq_title }}",
+    "rendering": { {% block render_item %}{% endblock %}
+                 },
+    "viewingHint": "{{ viewingHint }}",
+    "canvases": [
+        {% block canvases %}{% endblock %}
+    ]
+}
+            

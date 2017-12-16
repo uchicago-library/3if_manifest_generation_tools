@@ -1,0 +1,68 @@
+{
+    "@context": "http://iiif.io/api/presentation/2/context.json",
+    "@id": "http://iiif-manifest.lib.uchicago.edu/manifest.json",
+    "@type": "sc:Manifest",
+    "label": "{{ manifest.label }}",
+    "description": "{{ manifest.description }}",
+    "metadata": [
+        {
+            "label": "Title",
+            "value": "{{ manifest.label }},
+        }{% if manifest.date %},
+
+        {
+            "label": "Date",
+            "value": "{{ manifest.date }}"
+        },{% endif %}
+        {
+            "label": "Identifier",
+            "value": "{{ manifest_identifier }}"
+        }
+    ],
+    {% if rightsurl %}
+    "license": "{{ rightsurl }}",
+    {% endif %}
+    "sequences": [
+        {% for sequence in sequences %}
+            {
+             "@id": "http://iiif-manifest.lib.uchicago.edu/{{ manifest_identifier }}/sequence/s{{ seq_identifier }}",
+             "@type": "sc:Sequence",
+             "label": "{{ seq_title }}",
+             "rendering": { {% block render_item %}{% endblock %}
+            },
+            "viewingHint": "{{ viewingHint }}",
+            "canvases":
+             [
+              {% for canvas in sequence.canvases %}
+                {
+                 "@id": "http://iiif-manifest.lib.uchicago.edu/{{ manifest_identiifer }}/canvas/c{{ canvas.identiifer }}",
+                 "@type": "sc:Canvas",
+                 "height": {{ canvas.height }},
+                 "width": {{ canvas.width }},
+                 "label": "{{ canvas.label }}",
+                 "images":
+                 [
+                  {% for image in canvas.images %}
+                    {
+                     "@id": "http://iiif-manifest.lib.uchicago.edu/{{ manifest_identiifer }}/annotations/a{{ image.annotation_id }}",
+                     "@type": "oa:Annotation",
+                     "motivation": "sc:painting",
+                     "on": "http://iif-manifest.lib.uchicago.edu/{{ manifest_identifier }}/c{{ canvas.identifier }}",
+                     "resource": 
+                     {
+                        "@id": "{{ image.identifier }}",
+                        "@type": "{{ image.dctype }}",
+                        "format": "{{ image.mimetype }}",
+                        "height": {{ image.height }},
+                        "width": {{ image.width }}
+                      }
+                    }
+                  {% endfor %}
+                 ]
+                }
+              {% endfor %}
+             ]
+            }
+        {% endfor %}
+    ]
+}

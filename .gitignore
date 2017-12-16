@@ -5,6 +5,6 @@ test.xml
 .vscode/*
 *egg*
 *pyc
-*cache*
+*__pycache__*
 env*
 *wsd

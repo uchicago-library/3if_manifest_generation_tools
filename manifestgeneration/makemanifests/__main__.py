@@ -2,12 +2,14 @@ from argparse import ArgumentParser
 import csv
 from os import listdir
 from os.path import join, exists
+import re
 
 def main():
     arguments = ArgumentParser()
     arguments.add_argument("cho_list_data", type=str, action='store')
     arguments.add_argument("data_root", action='store', type=str, default="Z:\IIIF_Files")
     parsed_args = arguments.parse_args()
+
     try:
         with open(parsed_args.cho_list_data, "r", encoding="utf-8") as read_file:
             fields = ["Title",
@@ -25,21 +27,28 @@ def main():
                       "num ALTO spec matches",
                       "spec_type"
                      ]
-            reader = csv.DictReader(read_file, fieldnames=fields, delimiter=',', quotechar='"', quoting=csv.QUOTE_ALL)
+            reader = csv.DictReader(read_file, fieldnames=fields,
+                                    delimiter=',', quotechar='"',
+                                    quoting=csv.QUOTE_ALL)
             for row in reader:
+                identifier = row["Identification"]
+                prelimb_page_filename_spec = re.compile("^(\d{8})$")
+                limb_page_filename_spec = r"^(" + identifier + r"[_]\d{4})$"                   
+                limb_page_filename_spec = re.compile(limb_page_filename_spec)
                 spec_type = row["spec_type"]
                 id_parts = row["Identification"].split('-')
                 if spec_type == 'post-limb':
-                     page_dir = join(parsed_args.data_root, *id_parts, 'TIFF')                   
+                    page_dir = join(parsed_args.data_root, *id_parts, 'TIFF')                   
+                    pages = [join(*id_parts, limb_page_filename_spec.match(x.split('.')[0]).group(1))
+                             for x in listdir(page_dir) if limb_page_filename_spec.match(x.split('.')[0])]
                 elif spec_type == 'pre-limb':
                     page_dir = join(parsed_args.data_root, *id_parts, 'tif')
+                    pages = [join(*id_parts, prelimb_page_filename_spec.match(x.split('.')[0]).group(1)) for x in listdir(page_dir)]
                 else:
                     page_dir = None
-                if page_dir:
-                    if exists(page_dir):
-                        resources = ["https://digcollretriever.lib.uchicago.edu/retriever/" + x + "/stat" for x in listdir(page_dir)]
-                        for n in resources:
-                            print(n)
+                    pages = []
+                for page in pages:
+                    print(page)
 
             # identifier = n.split("mvol")[1]
             # identifier = identifier.split("\\")
