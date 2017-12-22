@@ -9,7 +9,6 @@ setup(
     packages=find_packages(),
     description="A command-line script to generate IIIF Manifests", 
     keywords="python3.5 iiif-presentation manifests",
-    scripts=['bin/generate-iiif.py'],
     entry_points={
          'console_scripts': [
              'make_manifests = manifestgeneration.makemanifests.__main__:main'

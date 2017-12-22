@@ -32,7 +32,7 @@ def main():
                                     quoting=csv.QUOTE_ALL)
             for row in reader:
                 identifier = row["Identification"]
-                prelimb_page_filename_spec = re.compile("^(\d{8})$")
+                prelimb_page_filename_spec = re.compile(r"^(\d{8})$")
                 limb_page_filename_spec = r"^(" + identifier + r"[_]\d{4})$"                   
                 limb_page_filename_spec = re.compile(limb_page_filename_spec)
                 spec_type = row["spec_type"]
